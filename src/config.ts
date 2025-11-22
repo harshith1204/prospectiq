@@ -21,7 +21,7 @@ export const getMemberId = () => {
 
 export const getBusinessId = () => {
   // HARDCODED FOR TESTING - REMOVE AFTER
-   return '1f08650a-8abc-662e-8c01-b9dc07ef0e5c';
+   return '1ef944db-0e37-6f01-943a-214dd19f54e9';
   
   // // First, try the bDetails key (for backward compatibility)
   // const raw = localStorage.getItem('bDetails');
