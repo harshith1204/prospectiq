@@ -2,6 +2,9 @@
 export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "https://prod-aicrm.simpo.ai";
 export const API_WS_URL = import.meta.env.VITE_API_WS_URL || `${API_HTTP_URL.replace(/^http/, "ws")}/ws/chat`;
 
+export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
+
 export const getMemberId = () => {
   // HARDCODED FOR TESTING - REMOVE AFTER
   //  return '1f07a8c4-e420-66cd-9fa6-653e39dc66b5';
