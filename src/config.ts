@@ -7,7 +7,7 @@ export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 export const getMemberId = () => {
   // HARDCODED FOR TESTING - REMOVE AFTER
-  //  return '1f07a8c4-e420-66cd-9fa6-653e39dc66b5';
+   return '1f07a8c4-e420-66cd-9fa6-653e39dc66b5';
   
   const stored = localStorage.getItem('staffId');
   if (!stored) return '';
@@ -24,7 +24,7 @@ export const getMemberId = () => {
 
 export const getBusinessId = () => {
   // HARDCODED FOR TESTING - REMOVE AFTER
-  //  return '1f08650a-8abc-662e-8c01-b9dc07ef0e5c';
+   return '1f08650a-8abc-662e-8c01-b9dc07ef0e5c';
   
   // First, try the bDetails key (for backward compatibility)
   const raw = localStorage.getItem('bDetails');

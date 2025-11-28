@@ -796,8 +796,9 @@ const Index = () => {
           <div
             className={cn(
               "relative z-20 transition-transform duration-500 ease-out",
-              isEmpty ? "-translate-y-[35vh] md:-translate-y-[30vh]" : "translate-y-0"
+              isEmpty ? "-translate-y-[35vh]" : "translate-y-0"
             )}
+            style={isEmpty ? { top: '3.5rem' } : {}}
           >
             {feedbackTargetId && (
               <div className="mx-auto max-w-4xl mb-3 px-4">
