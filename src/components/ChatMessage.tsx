@@ -119,7 +119,7 @@ export const ChatMessage = ({
         <div className="flex gap-4 flex-row-reverse">
           <div className="flex-1 text-right">
             <div className="flex justify-end">
-              <div className="inline-block max-w-[80%] px-5 py-2 rounded-full text-sm text-foreground leading-relaxed whitespace-pre-wrap bg-primary/10  text-right">
+              <div className="inline-block max-w-[80%] md:px-5 px-2 py-2 rounded-lg text-sm text-foreground leading-relaxed whitespace-pre-wrap bg-primary/10  text-right">
                 {displayedContent}
                 {isStreaming && currentIndex < content.length && (
                   <span className="inline-block w-1 h-4 ml-1 bg-primary animate-pulse" />
