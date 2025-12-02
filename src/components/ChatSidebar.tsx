@@ -87,7 +87,7 @@ export const ChatSidebar = ({
         </div>
       </ScrollArea>
 
-      <div className="p-2 border-t border-sidebar-border">
+      {/* <div className="p-2 border-t border-sidebar-border">
         <button
           onClick={onShowPersonalization}
           className={cn(
@@ -103,7 +103,7 @@ export const ChatSidebar = ({
             </div>
           </div>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
