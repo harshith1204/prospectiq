@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bot, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, copyTextToClipboard } from "@/lib/utils";
 import SafeMarkdown from "@/components/SafeMarkdown";
 import { Button } from "@/components/ui/button";
 import { AgentActivity } from "@/components/AgentActivity";
@@ -91,13 +91,10 @@ export const ChatMessage = ({
   const isUser = role === "user";
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      // Failed to copy text
-    }
+    const didCopy = await copyTextToClipboard(content);
+    if (!didCopy) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleThumbsUp = () => {
