@@ -11,6 +11,7 @@ import { getConversations, getConversationMessages, reactToMessage } from "@/api
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getMemberId, getBusinessId } from "@/config";
 
 interface Message {
@@ -79,6 +80,8 @@ const Index = () => {
   const streamingAssistantIdRef = useRef<string | null>(null);
   const activeConversationIdRef = useRef<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [creditError, setCreditError] = useState<{ message: string; requiredCredits?: number | string } | null>(null);
+  const [showCreditModal, setShowCreditModal] = useState(false);
 
   const getConversationIdFromUrl = () => {
     try {
@@ -396,10 +399,26 @@ const Index = () => {
         ]);
       }
     } else if (evt.type === "error") {
+      const isCreditError = (evt as any).error_type === "insufficient_credits";
+      const rawRequiredCredits = (evt as any).required_credits ?? (evt as any).requiredCredits;
+      const requiredCredits = typeof rawRequiredCredits === "string" ? Number(rawRequiredCredits) || rawRequiredCredits : rawRequiredCredits;
+      const baseMessage = evt.message || "Something went wrong. Please try again.";
+
+      if (isCreditError) {
+        setCreditError({
+          message: baseMessage,
+          requiredCredits,
+        });
+        setShowCreditModal(true);
+        setIsLoading(false);
+        streamingAssistantIdRef.current = null;
+        return;
+      }
+
       const id = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
-        { id, role: "assistant", content: `Error: ${evt.message}` },
+        { id, role: "assistant", content: `Error: ${baseMessage}` },
       ]);
       setIsLoading(false);
       streamingAssistantIdRef.current = null;
@@ -673,6 +692,44 @@ const Index = () => {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background relative pb-4 md:pt-3">
+      <Dialog open={showCreditModal} onOpenChange={(open) => { setShowCreditModal(open); if (!open) setCreditError(null); }}>
+        <DialogContent className="w-[calc(100%-1.5rem)] sm:w-full max-w-md p-4 sm:p-6 gap-2 sm:gap-3 max-h-[85vh] overflow-y-auto rounded-xl">
+          <DialogHeader className="pb-0">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 text-left">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-destructive -mt-0.5">
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  className="h-7 w-7 fill-destructive text-destructive"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M11.99 2 2 22h20L11.99 2zM12 16a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm1-2.5a1 1 0 0 1-2 0v-5a1 1 0 0 1 2 0v5Z" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <DialogTitle className="text-lg">Oops!</DialogTitle>
+                <DialogDescription className="text-sm text-foreground leading-relaxed text-pretty">
+                  Insufficient credits to process your social request.
+                  <br />
+                  Current balance is below the minimum threshold of {creditError?.requiredCredits ?? "required"} credits. Please recharge your account to continue.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="text-sm text-foreground mt-0 pl-0 sm:pl-10">
+            <p className="font-semibold">Required credits: {creditError?.requiredCredits ?? "—"}</p>
+          </div>
+          <DialogFooter className="mt-2 sm:mt-1 flex w-full flex-col sm:flex-row sm:justify-end gap-2">
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto px-8 h-10"
+              onClick={() => setShowCreditModal(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <button className="md:hidden absolute z-[60] w-full bg-background p-3"
         onClick={() => setMobileSidebarOpen(true)}
       >
