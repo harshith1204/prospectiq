@@ -1,5 +1,5 @@
 //export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "http://4.213.16.145:8000";
-export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "https://prod-aicrm.simpo.ai";
+export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL;
 export const API_WS_URL = import.meta.env.VITE_API_WS_URL || `${API_HTTP_URL.replace(/^http/, "ws")}/ws/chat`;
 
 export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
