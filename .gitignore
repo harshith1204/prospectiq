@@ -14,7 +14,8 @@ dist-ssr
 
 # Environment variables
 .env
-
+.env.stage
+.env.prod
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
