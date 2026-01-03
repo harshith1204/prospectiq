@@ -1,17 +1,17 @@
 //export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "http://4.213.16.145:8000";
 //export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "http://172.191.193.110:7000";
-export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "https://stage-aicrm.simpo.ai";
+export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "http://localhost:7000";
 export const API_WS_URL = import.meta.env.VITE_API_WS_URL || `${API_HTTP_URL.replace(/^http/, "ws")}/ws/chat`;
 
 export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 export const getMemberId = () => {
   // // HARDCODED FOR TESTING - REMOVE AFTER
-  //  return '1eff7f64-08ea-6fdc-99d0-3f7ae8229af5';
-  
+  return '1eff7f64-08ea-6fdc-99d0-3f7ae8229af5';
+  //
   const stored = localStorage.getItem('staffId');
   if (!stored) return '';
-  
+
   // Handle case where staffId might be stored as JSON string
   try {
     const parsed = JSON.parse(stored);
@@ -19,13 +19,13 @@ export const getMemberId = () => {
   } catch {
     // If not JSON, return as-is
     return stored.trim();
-  }
+  }//
 };
 
 export const getBusinessId = () => {
   // // HARDCODED FOR TESTING - REMOVE AFTER
-  //  return '1ef944db-0e37-6f01-943a-214dd19f54e9';
-  
+  return '1f0e56b7-3660-6fd2-b9b1-3133c3471e96';
+  //
   // First, try the bDetails key (for backward compatibility)
   const raw = localStorage.getItem('bDetails');
   if (raw) {
@@ -48,11 +48,11 @@ export const getBusinessId = () => {
   // If bDetails doesn't exist, look for business details stored under UUID key
   // Business details are stored with the business ID as the key
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key) continue;
-    
+
     // Check if key matches UUID pattern (likely a business ID)
     if (uuidPattern.test(key)) {
       try {
@@ -71,7 +71,7 @@ export const getBusinessId = () => {
     }
   }
 
-  return '';
+  return '';//
 };
 
 export const getStaffType = () => {
@@ -95,11 +95,11 @@ export const getBusinessDetails = () => {
 
   // If bDetails doesn't exist, look for business details stored under UUID key
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key) continue;
-    
+
     // Check if key matches UUID pattern (likely a business ID)
     if (uuidPattern.test(key)) {
       try {
