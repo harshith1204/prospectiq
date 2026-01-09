@@ -45,27 +45,6 @@ interface LeadImportModalProps {
   isImporting?: boolean;
 }
 
-// Mapping from Human Readable DB Fields to API Payload Paths
-const DB_LABEL_TO_PAYLOAD_KEY: Record<string, string> = {
-  "Person Name": "personalInfo.name",
-  "Mobile Number": "personalInfo.mobile",
-  "Email": "personalInfo.email",
-  "Street": "address.addressLine1",
-  "City": "address.city",
-  "State": "address.state",
-  "Postal Code": "address.zipCode",
-  "Country": "address.country",
-  "Company Website": "moreInfo.url",
-  "Lead Source": "moreInfo.source",
-  "Rating": "moreInfo.rating",
-  "Total Reviews": "moreInfo.total_reviews",
-  "Designation": "personalInfo.designation",
-  "Company Bio": "moreInfo.company_bio",
-  "Person Bio": "moreInfo.person_bio",
-  "Linkedin": "moreInfo.linkedin",
-  "Industry": "moreInfo.industry",
-};
-
 export function LeadImportModal({
                                   open,
                                   onClose,
@@ -217,9 +196,11 @@ export function LeadImportModal({
 
   // --- Step 1 Logic: Prepare & Fetch Headers ---
 
-  const generateCSV = (data: Lead[]): File => {
-    // Collect all unique keys from the leads data
-    const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+  const generateCSV = (data: Lead[], forceHeaders?: string[]): File => {
+    // Collect all unique keys from the leads data if headers not forced
+    const allKeys = forceHeaders && forceHeaders.length > 0
+        ? forceHeaders
+        : Array.from(new Set(data.flatMap(Object.keys)));
 
     const csvRows = [
       allKeys.join(","), // Header row
@@ -321,23 +302,6 @@ export function LeadImportModal({
 
   // --- Step 2 Logic: Final Import ---
 
-  const setByPath = (obj: any, path: string, value: any) => {
-    const parts = path.split('.');
-    let current = obj;
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) current[parts[i]] = {};
-      current = current[parts[i]];
-    }
-    current[parts[parts.length - 1]] = value;
-  };
-
-  const getPayloadPath = (dbLabel: string) => {
-    if (DB_LABEL_TO_PAYLOAD_KEY[dbLabel]) return DB_LABEL_TO_PAYLOAD_KEY[dbLabel];
-    // Fallback: slugify and put in moreInfo
-    const slug = dbLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    return `moreInfo.${slug}`;
-  };
-
   const handleFinalImport = async () => {
     // Group leads by pipeline for efficient import
     const leadsByPipeline: Record<string, { leads: Lead[]; indices: number[] }> = {};
@@ -362,54 +326,41 @@ export function LeadImportModal({
       for (const [pipelineId, { leads: pipelineLeads }] of Object.entries(leadsByPipeline)) {
         try {
           const businessId = getBusinessId();
-          const staffId = getMemberId();
 
-          // Transform leads using the mapping
-          const transformedLeads = pipelineLeads.map(lead => {
-            const transformed: any = {
-              businessId,
-              staffId,
-              personalInfo: {},
-              address: {},
-              pipeline: { id: pipelineId },
-              type: 'LEAD',
-              leadActiveType: 'ACTIVE',
-              moreInfo: {}
-            };
+          // 1. Generate CSV for this specific pipeline group
+          // We pass csvFields to ensure the CSV structure matches what was used for mapping in Step 1
+          const file = generateCSV(pipelineLeads, csvFields);
 
-            // Apply user mappings
-            Object.entries(fieldMapping).forEach(([csvHeader, dbLabel]) => {
-              const value = lead[csvHeader];
-              if (value !== undefined && value !== null && value !== "") {
-                const path = getPayloadPath(dbLabel);
-                setByPath(transformed, path, value);
-              }
-            });
+          // 2. Construct the mapping JSON (DB Field -> CSV Header)
+          const mappingRequest: Record<string, string> = {};
 
-            // Explicitly handle Geolocation if present (as it's a complex object not easily mapped via simple string mapping)
-            if (lead.geo) {
-              const parts = lead.geo.split(',');
-              if (parts.length === 2) {
-                transformed.address.geolocation = {
-                  latitude: parseFloat(parts[0].trim()),
-                  longitude: parseFloat(parts[1].trim())
-                };
-              }
-            }
-
-            return transformed;
+          // Iterate through all available DB fields to ensure the map is complete
+          // If a DB field is not mapped, send empty string
+          dbFields.forEach(dbField => {
+            // Find the CSV header that maps to this DB field
+            const mappedCsvHeader = Object.keys(fieldMapping).find(
+                key => fieldMapping[key] === dbField
+            );
+            mappingRequest[dbField] = mappedCsvHeader || "";
           });
 
-          console.log("Pipeline IDs being sent:", selectedPipelines);
-          console.log("Lead payload:", transformedLeads);
+          // 3. Prepare FormData and URL
+          const formData = new FormData();
+          formData.append("file", file);
 
-          const response = await fetch(`https://stage-api.simpo.ai/crm/leads/bulk-create`, {
+          const requestParam = encodeURIComponent(JSON.stringify(mappingRequest));
+
+          // Note: moduleType=LEAD is hardcoded
+          const url = `https://stage-api.simpo.ai/crm/leads/upload/dynamic-excel?businessId=${businessId}&request=${requestParam}&moduleType=LEAD&pipelineId=${pipelineId}`;
+
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Accept': 'application/json'
+              // Content-Type header is skipped so browser sets it with boundary for FormData
             },
-            body: JSON.stringify({ leadList: transformedLeads })
+            body: formData
           });
 
           if (response.ok) {
