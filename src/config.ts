@@ -4,10 +4,11 @@ export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL || "http://localho
 export const API_WS_URL = import.meta.env.VITE_API_WS_URL || `${API_HTTP_URL.replace(/^http/, "ws")}/ws/chat`;
 
 export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+export const API_BASE_URL = import.meta.env.BASE_URL
 
 export const getMemberId = () => {
   // // HARDCODED FOR TESTING - REMOVE AFTER
-  return '1eff7f64-08ea-6fdc-99d0-3f7ae8229af5';
+  return '1f0e4a83-fa30-6c52-a08f-6994288d6e47';
   //
   const stored = localStorage.getItem('staffId');
   if (!stored) return '';
@@ -24,7 +25,7 @@ export const getMemberId = () => {
 
 export const getBusinessId = () => {
   // // HARDCODED FOR TESTING - REMOVE AFTER
-  return '1f0e56b7-3660-6fd2-b9b1-3133c3471e96';
+  return '1f0ec75b-f1e9-6d9d-b9b1-9ba6789bf28f';
   //
   // First, try the bDetails key (for backward compatibility)
   const raw = localStorage.getItem('bDetails');

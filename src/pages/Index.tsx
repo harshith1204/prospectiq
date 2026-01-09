@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { getMemberId, getBusinessId } from "@/config";
+import { LeadImportModal } from "@/components/leadImportModal";
 
 interface Message {
   id: string;
@@ -78,6 +79,10 @@ const Index = () => {
   const endRef = useRef<HTMLDivElement | null>(null);
   const streamingAssistantIdRef = useRef<string | null>(null);
   const activeConversationIdRef = useRef<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importLeads, setImportLeads] = useState<any[]>([]);
+  const [importMetadata, setImportMetadata] = useState<{businessType?: string; location?: string;downloadUrl?:string;}>({});
+  const [isImporting,setIsImporting] = useState(false);
 
   const getConversationIdFromUrl = () => {
     try {
@@ -394,6 +399,40 @@ const Index = () => {
           },
         ]);
       }
+    } else if (evt.type === "leads_ready_for_import") {
+      // Store leads data for import modal
+      setImportLeads((evt as any).leads || []);
+      setImportMetadata({
+        businessType: (evt as any).business_type,
+        location: (evt as any).location,
+        downloadUrl:(evt as any).download_url
+      });
+      setShowImportModal(true);
+    }
+    else if (evt.type === "import_success") {
+      setIsImporting(false);
+      setShowImportModal(false);
+      const id = `assistant-${Date.now()}`;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id,
+          role: "assistant",
+          content: `✅ Successfully imported ${(evt as any).count || 0} leads to CRM!`
+        }
+      ]);
+    }
+    else if (evt.type === "import_error") {
+      setIsImporting(false);
+      const id = `assistant-${Date.now()}`;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id,
+          role: "assistant",
+          content: `❌ Import failed: ${evt.message || "Unknown error"}`
+        }
+      ]);
     } else if (evt.type === "error") {
       const id = `assistant-${Date.now()}`;
       setMessages((prev) => [
@@ -665,6 +704,22 @@ const Index = () => {
     setFeedbackText("");
   };
 
+  const handleImportLeads = (leads:any[], pipelineId?:string) => {
+    setIsImporting(true);
+    const ok = send({
+      type: "import_leads",
+      leads,
+      pipeline_id: pipelineId,
+      member_id: getMemberId(),
+      business_id: getBusinessId()
+    });
+
+    if(!ok) {
+      setIsImporting(false);
+      alert("connection error. please try again.");
+    }
+  };
+
   useEffect(() => {
     if (showPersonalization) return;
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -791,6 +846,20 @@ const Index = () => {
               </div>
             )}
             <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} showSuggestedPrompts={isEmpty} />
+            <LeadImportModal
+              open={showImportModal}
+              onClose={() => {
+                setShowImportModal(false);
+                setImportLeads([]);
+                setImportMetadata({});
+              }}
+              leads={importLeads}
+              businessType={importMetadata.businessType}
+              location={importMetadata.location}
+              downloadUrl={importMetadata.downloadUrl}
+              onImport={handleImportLeads}
+              isImporting={isImporting}
+            />
           </div>
         )}
       </div>
