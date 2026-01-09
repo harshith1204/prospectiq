@@ -5,6 +5,7 @@ import SafeMarkdown from "@/components/SafeMarkdown";
 import { Button } from "@/components/ui/button";
 import { AgentActivity } from "@/components/AgentActivity";
 import { usePersonalization } from "@/context/PersonalizationContext";
+import { LeadCard } from "@/components/LeadCard";
 import { toast } from "@/components/ui/use-toast";
 import { getBusinessId, getMemberId } from "@/config";
 
@@ -23,11 +24,19 @@ interface ChatMessageProps {
     body?: string;
   };
   lead?: {
-    name: string;
-    email?: string;
-    mobile?: string;
+    personalInfo?:{
+      name: string;
+      email?: string;
+      mobile?: string;};
     leadStatus?: string;
     referenceNo?: string;
+    pipeline?:{
+      name: string;
+    };
+    pipelineStage?:{
+      stageName: string;
+      statusName: string;
+    };
   };
   task?: {
     name: string;
@@ -139,15 +148,18 @@ export const ChatMessage = ({
           )}
 
           {lead ? (
-            <div className="mt-1 p-4 border border-border rounded-lg bg-card">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Lead: {lead.name}</h3>
-                {lead.email && <p className="text-sm text-muted-foreground">Email: {lead.email}</p>}
-                {lead.mobile && <p className="text-sm text-muted-foreground">Mobile: {lead.mobile}</p>}
-                {lead.leadStatus && <p className="text-sm text-muted-foreground">Status: {lead.leadStatus}</p>}
-                {lead.referenceNo && <p className="text-sm text-muted-foreground">Reference: {lead.referenceNo}</p>}
-              </div>
-            </div>
+            <LeadCard
+              name={lead.personalInfo?.name ?? "—"}
+              email={lead.personalInfo?.email}
+              mobile={lead.personalInfo?.mobile}
+              referenceNo={lead.referenceNo}
+
+              leadStatus={lead.leadStatus}
+              pipelineName={lead.pipeline?.name}
+              stageName={lead.pipelineStage?.stageName}
+              statusName={lead.pipelineStage?.statusName}
+            />
+            
           ) : task ? (
             <div className="mt-1 p-4 border border-border rounded-lg bg-card">
               <div className="space-y-2">

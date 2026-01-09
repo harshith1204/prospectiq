@@ -11,20 +11,36 @@ export type ChatEvent =
   | { type: "tool_start"; tool_name: string; input?: string; timestamp: string }
   | { type: "tool_end"; output?: string; output_preview?: string; hidden?: boolean; timestamp: string }
   | { type: "planner_error"; message: string; timestamp: string }
+  | { type: "planner_result"; success: boolean; intent?: string; pipeline?: any; pipeline_js?: string; result?: any; timestamp: string }
   | { type: "agent_action"; text: string; step: number; timestamp: string }
   | { type: "content_generated"; content_type: "lead" | "task" | "meeting" | "note"; data?: any; error?: string; success: boolean }
   | { type: "complete"; conversation_id: string; timestamp: string }
   | { type: "pong"; timestamp: string }
   | { type: "error"; message: string; timestamp?: string }
+  | { type: "leads_ready_for_import"; leads: any[]; count: number; business_type?: string; location?: string; downloadUrl?: string;timestamp: string }
+  | { type: "import_success"; message: string; count: number; data?: any; timestamp: string }
+  | { type: "import_error"; message: string; details?: string; timestamp: string }
   | { type: string; [k: string]: any };
 
-export type SendMessagePayload = {
+
+
+interface SendMessagePayload {
+  type?: string;
+  message?: string;
+  conversation_id?: string;
+  member_id?: string;
+  business_id?: string;
+  leads?: any[];
+  pipeline_id?: string;
+  [key: string]: any;
+}
+/*export type SendMessagePayload = {
   message: string;
   conversation_id?: string | null;
   planner?: boolean;
   member_id?: string;
   business_id?: string;
-};
+};*/
 
 type UseChatSocketOptions = {
   url?: string;
@@ -80,7 +96,9 @@ export function useChatSocket(options: UseChatSocketOptions = {}) {
 
       ws.onmessage = (event: MessageEvent) => {
         try {
+
           const data: ChatEvent = JSON.parse(event.data);
+          console.log('[WebSocket] Received message:',data);
           if (data.type === "connected" && (data as any).user_id) {
             setClientId((data as any).user_id);
           }
@@ -155,13 +173,27 @@ export function useChatSocket(options: UseChatSocketOptions = {}) {
 
   const send = useCallback((payload: SendMessagePayload) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return false;
-    const body: any = {
-      message: payload.message,
-      conversation_id: payload.conversation_id || undefined,
-      planner: !!payload.planner,
-      member_id: payload.member_id,
-      business_id: payload.business_id,
-    };
+    let body: any;
+    
+    if (payload.type === "import_leads") {
+      // Special handling for import requests
+      body = {
+        type: "import_leads",
+        leads: payload.leads,
+        pipeline_id: payload.pipeline_id,
+        member_id: payload.member_id,
+        business_id: payload.business_id,
+      };
+    } else {
+      // Regular message handling
+      body = {
+        message: payload.message,
+        conversation_id: payload.conversation_id || undefined,
+        planner: !!payload.planner,
+        member_id: payload.member_id,
+        business_id: payload.business_id,
+      };
+    }
     try {
       wsRef.current.send(JSON.stringify(body));
       return true;

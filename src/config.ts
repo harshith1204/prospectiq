@@ -3,6 +3,7 @@ export const API_HTTP_URL = import.meta.env.VITE_API_HTTP_URL;
 export const API_WS_URL = import.meta.env.VITE_API_WS_URL || `${API_HTTP_URL.replace(/^http/, "ws")}/ws/chat`;
 
 export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+export const API_BASE_URL = import.meta.env.BASE_URL
 
 
 export const getMemberId = () => {
@@ -11,7 +12,7 @@ export const getMemberId = () => {
   
   const stored = localStorage.getItem('staffId');
   if (!stored) return '';
-  
+
   // Handle case where staffId might be stored as JSON string
   try {
     const parsed = JSON.parse(stored);
@@ -19,7 +20,7 @@ export const getMemberId = () => {
   } catch {
     // If not JSON, return as-is
     return stored.trim();
-  }
+  }//
 };
 
 export const getBusinessId = () => {
@@ -48,11 +49,11 @@ export const getBusinessId = () => {
   // If bDetails doesn't exist, look for business details stored under UUID key
   // Business details are stored with the business ID as the key
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key) continue;
-    
+
     // Check if key matches UUID pattern (likely a business ID)
     if (uuidPattern.test(key)) {
       try {
@@ -71,7 +72,7 @@ export const getBusinessId = () => {
     }
   }
 
-  return '';
+  return '';//
 };
 
 export const getStaffType = () => {
@@ -95,11 +96,11 @@ export const getBusinessDetails = () => {
 
   // If bDetails doesn't exist, look for business details stored under UUID key
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key) continue;
-    
+
     // Check if key matches UUID pattern (likely a business ID)
     if (uuidPattern.test(key)) {
       try {
